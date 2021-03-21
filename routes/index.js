@@ -1,5 +1,4 @@
-var express = require('express');
-var router = express.Router();
-var user = require('./user');
-router.use('/user', user);
+const {router} = require('./../variables/variables.js');
+var contacts = require('./contacts');
+router.use('/contacts', contacts);
 module.exports = router;

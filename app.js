@@ -1,18 +1,14 @@
-const express = require('express');
+const {express} = require('./variables/variables.js');
+const {app} = require('./variables/variables.js');
+const {http} = require('./variables/variables.js');
+const {cors} = require('./variables/variables.js');
+const {io} = require('./variables/variables.js');
 const index_router = require('./routes/index');
-const cors = require('cors');
-const app = express();
-const http = require('http').createServer(app);
-const io = require('socket.io')(http, {
-    cors: {
-        origin: "http://localhost:8100",
-        credentials: true
-    }
-});
 
 app.use(cors())
 app.use(express.json());
 app.use('/', index_router);
+
 io.on('connection', (socket) => {
     console.log('a user connected');
     socket.on('message', (msg) => {

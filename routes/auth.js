@@ -1,15 +1,9 @@
-var express = require('express');
-var router = express.Router();
-var md5 = require('md5');
-var jwt = require('jsonwebtoken');
-var mysql = require('mysql');
-var con = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "1111",
-    database: "ChatApp",
-});
-router.post('/register', async function (req, res, next) {
+const {router} = require('./../variables/variables.js');
+const {con} = require('./../variables/variables.js');
+const {jwt} = require('./../variables/variables.js');
+const {md5} = require('./../variables/variables.js');
+
+router.post('/register', async function (req, res) {
     try {
         let {username, telNumber, password} = req.body;
         const hashed_password = md5(password.toString())
@@ -23,8 +17,13 @@ router.post('/register', async function (req, res, next) {
                         if (err) {
                             res.send({status: 0, data: err});
                         } else {
-                            let token = jwt.sign({data: result}, 'secret')
-                            res.send({status: 1, data: result, token: token});
+                            const data = {
+                                username: result[0].username,
+                                telNumber: result[0].telNumber,
+                                id: result[0].id
+                            }
+                            let token = jwt.sign({data: data}, 'secret')
+                            res.send({data: result, token: token});
                         }
                     })
             }
@@ -33,7 +32,7 @@ router.post('/register', async function (req, res, next) {
         res.send({status: 0, error: error});
     }
 });
-router.post('/login', async function (req, res, next) {
+router.post('/login', async function (req, res) {
     try {
         let {telNumber, password} = req.body;
         const hashed_password = md5(password.toString())
@@ -44,12 +43,16 @@ router.post('/login', async function (req, res, next) {
                 if (err) {
                     res.send({status: 0, data: err});
                 } else {
-                    let token = jwt.sign({data: result}, 'secret')
-                    res.send({status: 1, data: result, token: token});
+                    const data = {
+                        username: result[0].username,
+                        telNumber: result[0].telNumber,
+                        id: result[0].id
+                    }
+                    let token = jwt.sign({data: data}, 'secret')
+                    res.send({token: token});
                 }
             })
     } catch (error) {
         res.send({status: 0, error: error});
     }
 });
-module.exports = router;
