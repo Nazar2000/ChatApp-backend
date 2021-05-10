@@ -43,16 +43,19 @@ router.post('/login', async function (req, res) {
                 if (err) {
                     res.send({status: 0, data: err});
                 } else {
-                    const data = {
-                        username: result[0].username,
-                        telNumber: result[0].telNumber,
-                        id: result[0].id
+                    if (result.length){
+                        const data = {
+                            username: result[0].username,
+                            telNumber: result[0].telNumber,
+                            id: result[0].id
+                        }
+                        let token = jwt.sign({data: data}, 'secret')
+                        res.send({token: token});
                     }
-                    let token = jwt.sign({data: data}, 'secret')
-                    res.send({token: token});
                 }
             })
     } catch (error) {
         res.send({status: 0, error: error});
     }
 });
+module.exports = router;
