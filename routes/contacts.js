@@ -18,21 +18,34 @@ router.get('/contact-check/:telNumber', async function (req, res) {
         res.send({status: 0, error: error});
     }
 });
-router.get('/contacts-list', async function (req, res) {
+router.get('/contacts-list/:id', async function (req, res) {
     try {
-        let {id} = req.body;
-        const sql = `SELECT * FROM users_contact_list WHERE id = id`
+        let id = req.params.id;
+        const sql = `SELECT *, GROUP_CONCAT(userId) FROM users_contact_list GROUP BY userId`
         con.query(
             sql, [id],
             function (err, result) {
                 if (err) {
                     res.send({status: 0, data: err});
                 } else {
-                    const data = {
-                        id: result[0].id,
-                        contacts: JSON.parse(result[0].contacts),
+                    if (result.length) {
+                        let contacts = [] ;
+                            result.forEach((item) => {
+                            if (item.userId === id){
+                                contacts.push({
+                                    telNumber: item.telNumber,
+                                    displayName: item.displayName
+                                });
+                            }
+                        })
+                        if (contacts.length){
+                            const data = {
+                                id: result[0].id,
+                                contacts,
+                            }
+                            res.send({data: data});
+                        }
                     }
-                    res.send({data: data});
                 }
             })
     } catch (error) {
@@ -42,34 +55,27 @@ router.get('/contacts-list', async function (req, res) {
 router.post('/contacts', async function (req, res) {
     try {
         let userId = req.body.id;
-        let contacts = [{
-            displayName: req.body.username,
-            telNumber: req.body.telNumber
-        }];
+        let displayName = req.body.username;
+        let telNumber = req.body.telNumber;
+
         const checkId = `SELECT * FROM users_contact_list WHERE +userId = ?`;
         con.query(checkId, [userId], (err, result) => {
             if (result) {
                 if (result.length) {
-                    const sql = `UPDATE users_contact_list SET contacts = ? WHERE +userId = ?`;
-                    const resultContacts = JSON.parse(result[0].contacts)
-                    if (+resultContacts[0].telNumber !== +contacts[0].telNumber) {
-                        const contactsArr = JSON.stringify(resultContacts.concat(contacts));
-                        con.query(
-                            sql, [contactsArr, userId],
-                            (err, result) => {
-                                if (err) {
-                                    res.send({status: 0, data: err});
-                                } else {
-                                    res.send({data: result});
-                                }
-                            })
-                    } else {
-                        res.send({status: 0, data: 'err'});
-                    }
-                } else {
-                    const sql = `Insert Into users_contact_list(userId, contacts) VALUES (?, ?)`
+                    const sql = `UPDATE users_contact_list SET displayName = ?, telNumber = ? WHERE +userId = ?`;
                     con.query(
-                        sql, [userId, contacts],
+                        sql, [displayName, telNumber, userId],
+                        (err, result) => {
+                            if (err) {
+                                res.send({status: 0, data: err});
+                            } else {
+                                res.send({data: result});
+                            }
+                        })
+                } else {
+                    const sql = `Insert Into users_contact_list(userId, displayName,telNumber) VALUES (?, ?, ?)`
+                    con.query(
+                        sql, [userId, displayName, telNumber],
                         (err, result) => {
                             if (err) {
                                 res.send({status: 0, data: err});

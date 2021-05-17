@@ -17,11 +17,10 @@ const con = mysql.createConnection({
 });
 const io = require('socket.io')(http, {
     cors: {
-        origin: "http://localhost:8100",
+        origin: "*",
         credentials: true
     }
 });
-
 
 module.exports = {
     express,
@@ -35,3 +34,4 @@ module.exports = {
     cors,
     md5
 }
+
