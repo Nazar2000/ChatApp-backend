@@ -14,10 +14,12 @@ io.sockets.on('connection', function (socket) {
         socket.join('Lobby');
         let userId = data.id;
         let recipientNumber = data.recipientNumber;
-        const sqlSelect = `SELECT id FROM users WHERE +telNumber = ?`;
+        const sqlSelect = `SELECT id,username FROM users WHERE +telNumber = ?`;
         con.query(sqlSelect, [recipientNumber], (err, result) => {
             if (result) {
                 const recipientId = result[0].id
+                const username = result[0].username
+                socket.emit('userName', username);
                 if (result.length) {
                     const sqlT = 'SELECT *, GROUP_CONCAT(userId) FROM chat_messages GROUP BY message '
                     con.query(sqlT, [userId, recipientId], (err, result) => {
@@ -54,13 +56,6 @@ io.sockets.on('connection', function (socket) {
         });
         io.sockets["in"](socket.room).emit('updateChat', userId, data);
     });
-
-    socket.on('disconnect', function () {
-        delete usernames[socket.username];
-        io.sockets.emit('updateusers', usernames);
-        socket.leave(socket.room);
-    });
 });
-
 
 module.exports = router;
